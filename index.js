@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 const app = express()
 
 app.use(express.json())
@@ -43,8 +45,10 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
-})
+    Person.find({}).then(persons => {
+        res.json(persons)
+    })
+    })
 
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
@@ -59,7 +63,6 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
     const body = req.body
-    const id = Math.floor(Math.random() * 1000000)
 
     if (persons.find(person => person.name === body.name)) {
         return res.status(400).json({
@@ -79,15 +82,15 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    const person = {
-        id: id,
+    const person = new Person({
         name: body.name,
         number: body.number
-    }
+    })
 
-    persons = persons.concat(person)
+    person.save().then(savedPerson => {
+        res.json(savedPerson)
+    })
 
-    res.json(person)
 })
 
 app.delete('/api/persons/:id', (req, res) => {
